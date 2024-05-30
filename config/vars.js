@@ -13,7 +13,7 @@ const bookingTokenAddress = vars.has("BOOKING_TOKEN_ADDR")
 function getSupplierKey() {
   if (!supplierKey) {
     console.error(
-      "SUPPLIER_PRIVATE_KEY is not set. Please set it using: hardhat vars set SUPPLIER_PRIVATE_KEY"
+      "SUPPLIER_PRIVATE_KEY is not set. Please set it using: hardhat vars set SUPPLIER_PRIVATE_KEY",
     );
   }
   return supplierKey;
@@ -21,7 +21,7 @@ function getSupplierKey() {
 function getBuyerKey() {
   if (!buyerKey) {
     console.error(
-      "BUYER_PRIVATE_KEY is not set. Please set it using: hardhat vars set BUYER_PRIVATE_KEY"
+      "BUYER_PRIVATE_KEY is not set. Please set it using: hardhat vars set BUYER_PRIVATE_KEY",
     );
   }
   return buyerKey;
@@ -29,7 +29,7 @@ function getBuyerKey() {
 function getBookingTokenAddress() {
   if (!bookingTokenAddress) {
     console.error(
-      "BOOKING_TOKEN_ADDR is not set. Please set it using: hardhat vars set BOOKING_TOKEN_ADDR"
+      "BOOKING_TOKEN_ADDR is not set. Please set it using: hardhat vars set BOOKING_TOKEN_ADDR",
     );
   }
   return bookingTokenAddress;

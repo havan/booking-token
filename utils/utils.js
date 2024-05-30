@@ -20,7 +20,7 @@ async function getSupplierWallet() {
 
   const supplierWallet = new hre.ethers.Wallet(
     supplierKey,
-    hre.ethers.provider
+    hre.ethers.provider,
   );
 
   return supplierWallet;

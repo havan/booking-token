@@ -18,7 +18,7 @@ module.exports = {
     columbus: {
       url: vars.get(
         "COLUMBUS_URL",
-        "https://columbus.camino.network/ext/bc/C/rpc"
+        "https://columbus.camino.network/ext/bc/C/rpc",
       ),
       accounts: vars.has("COLUMBUS_DEPLOYER_PRIVATE_KEY")
         ? [vars.get("COLUMBUS_DEPLOYER_PRIVATE_KEY")]

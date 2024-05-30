@@ -7,7 +7,7 @@ const SUPPLIER_SCOPE = scope("supplier", "Register supplier and mint bookings");
 // Register supplier task
 SUPPLIER_SCOPE.task(
   "register",
-  "Registers a supplier with the BookingToken contract"
+  "Registers a supplier with the BookingToken contract",
 )
   .addParam("name", "The name of the supplier. Eg: Chain4Travel")
   .setAction(async (taskArgs) => {

@@ -17,7 +17,7 @@ describe("BookingToken", function () {
     const BookingToken = await ethers.getContractFactory("BookingTokenV0");
     const bookingToken = await BookingToken.deploy(
       "BookingToken",
-      "BOOKINGTOKEN"
+      "BOOKINGTOKEN",
     );
 
     return {
@@ -33,20 +33,20 @@ describe("BookingToken", function () {
   describe("Deployment", function () {
     it("Should set the right admin and minter roles", async function () {
       const { bookingToken, defaultAdmin, minter } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       expect(
         await bookingToken.hasRole(
           await bookingToken.DEFAULT_ADMIN_ROLE(),
-          defaultAdmin.address
-        )
+          defaultAdmin.address,
+        ),
       ).to.equal(true);
       expect(
         await bookingToken.hasRole(
           await bookingToken.MINTER_ROLE(),
-          minter.address
-        )
+          minter.address,
+        ),
       ).to.equal(true);
     });
   });
@@ -54,23 +54,23 @@ describe("BookingToken", function () {
   describe("Register Supplier", function () {
     it("Should register a supplier", async function () {
       const { bookingToken, supplier } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       await bookingToken.connect(supplier).registerSupplier("SupplierName");
 
       expect(await bookingToken.getSupplierName(supplier.address)).to.equal(
-        "SupplierName"
+        "SupplierName",
       );
     });
 
     it("Should emit SupplierRegistered event", async function () {
       const { bookingToken, supplier } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       await expect(
-        bookingToken.connect(supplier).registerSupplier("SupplierName")
+        bookingToken.connect(supplier).registerSupplier("SupplierName"),
       )
         .to.emit(bookingToken, "SupplierRegistered")
         .withArgs(supplier.address, "SupplierName");
@@ -80,7 +80,7 @@ describe("BookingToken", function () {
   describe("Safe Mint", function () {
     it("Should mint a new token", async function () {
       const { bookingToken, minter, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       const tokenId = 0;
@@ -94,13 +94,13 @@ describe("BookingToken", function () {
       expect(await bookingToken.ownerOf(tokenId)).to.equal(minter.address);
       expect(await bookingToken.tokenURI(tokenId)).to.equal(uri);
       expect(await bookingToken.getTokenSupplier(tokenId)).to.equal(
-        minter.address
+        minter.address,
       );
     });
 
     it("Should revert if expiration timestamp is less than 60 seconds from now", async function () {
       const { bookingToken, minter, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       const uri = "tokenURI";
@@ -109,15 +109,15 @@ describe("BookingToken", function () {
       await expect(
         bookingToken
           .connect(minter)
-          .safeMint(reservedFor.address, uri, expirationTimestamp)
+          .safeMint(reservedFor.address, uri, expirationTimestamp),
       ).to.be.revertedWith(
-        "BookingToken: Expiration timestamp must be at least 60 seconds in the future"
+        "BookingToken: Expiration timestamp must be at least 60 seconds in the future",
       );
     });
 
     it("Should emit TokenReservation event", async function () {
       const { bookingToken, minter, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       const tokenId = 0;
@@ -127,7 +127,7 @@ describe("BookingToken", function () {
       await expect(
         bookingToken
           .connect(minter)
-          .safeMint(reservedFor.address, uri, expirationTimestamp)
+          .safeMint(reservedFor.address, uri, expirationTimestamp),
       )
         .to.emit(bookingToken, "TokenReservation")
         .withArgs(reservedFor.address, tokenId, expirationTimestamp);
@@ -137,7 +137,7 @@ describe("BookingToken", function () {
   describe("Buy Token", function () {
     it("Should allow reserved address to buy token", async function () {
       const { bookingToken, minter, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       const tokenId = 0;
@@ -165,15 +165,15 @@ describe("BookingToken", function () {
         .safeMint(reservedFor.address, uri, expirationTimestamp);
 
       await expect(
-        bookingToken.connect(otherAccount).buy(tokenId)
+        bookingToken.connect(otherAccount).buy(tokenId),
       ).to.be.revertedWith(
-        "BookingToken: You do not have a reservation for this token"
+        "BookingToken: You do not have a reservation for this token",
       );
     });
 
     it("Should revert if token reservation has expired", async function () {
       const { bookingToken, minter, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       const tokenId = 0;
@@ -187,13 +187,13 @@ describe("BookingToken", function () {
       await time.increaseTo(expirationTimestamp + 1); // Move time past expiration
 
       await expect(
-        bookingToken.connect(reservedFor).buy(tokenId)
+        bookingToken.connect(reservedFor).buy(tokenId),
       ).to.be.revertedWith("BookingToken: Token reservation has expired");
     });
 
     it("Should emit TokenBought event", async function () {
       const { bookingToken, minter, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       const tokenId = 0;
@@ -214,7 +214,7 @@ describe("BookingToken", function () {
   describe("Full Flow", function () {
     it("Should register a supplier, mint a token, and allow buyer to purchase", async function () {
       const { bookingToken, supplier, reservedFor } = await loadFixture(
-        deployBookingTokenFixture
+        deployBookingTokenFixture,
       );
 
       // Register supplier
@@ -236,7 +236,7 @@ describe("BookingToken", function () {
       // Check if the owner is the buyer and the supplier is correct
       expect(await bookingToken.ownerOf(tokenId)).to.equal(reservedFor.address);
       expect(await bookingToken.getTokenSupplier(tokenId)).to.equal(
-        supplier.address
+        supplier.address,
       );
     });
   });
