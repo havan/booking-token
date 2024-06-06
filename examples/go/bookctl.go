@@ -420,13 +420,17 @@ func main() {
 
 	// URI vars
 	var name, description, date, externalURL, image string
-	var attributes []string
+	var attributesSlice []string
 
 	// Generate URI command
 	// Example:
-	// bookctl uri "Example Hotel" "A nice hotel stay." "2024-06-01 to 2024-06-07" "https://example.com/hotel" "https://example.com/image.jpg"
-	// bookctl uri "Example Hotel" "A nice hotel stay." "2024-06-24" "https://camino.network" "https://camino.network/static/images/N9IkxmG-Sg-1800.webp" "Mint ID" `uuidgen -r` "Booking Reference" "RH3TG6223"
-	// bookctl uri "Pegasus PC 1091" "Flight from Sabiha Gökçene (SAW) to Barcelona (BCN)" "2024-06-24 10:55" "https://camino.network" "https://camino.network/static/images/N9IkxmG-Sg-1800.webp" "Mint ID" `uuidgen -r` "Seat" "2F"
+	//
+	// go run bookctl.go uri --name "Pegasus PC 1091" \
+	// 		-d "Flight from Sabiha Gökçene (SAW) to Barcelona (BCN)" \
+	// 		-D "2024-06-24 10:55" \
+	// 		--image https://camino.network/static/images/N9IkxmG-Sg-1800.webp \
+	// 		-e https://camino.network \
+	// 		-a "Mint ID","asdasda","Seat","2F"
 	var uriCmd = &cobra.Command{
 		Use:   "uri [token-name]",
 		Short: "Generate base64 encoded tokenURI for a token with the provided information.",
@@ -436,16 +440,19 @@ func main() {
 			// 	log.Fatal("Invalid number of arguments. Traits should be in _pairs_ of trait_type and value.")
 			// }
 
-			if len(attributes)%2 != 0 {
+			fmt.Printf("Attributes: %v\n", attributesSlice)
+
+			if len(attributesSlice)%2 != 0 {
 				log.Fatal("Invalid number of arguments. Traits should be in pairs of trait_type and value.")
 			}
 
 			// Loop over remaining arguments and add to attributes array
 			attributes := []Attribute{}
-			for i := 5; i < len(args); i += 2 {
+
+			for i := 0; i < len(attributesSlice); i += 2 {
 				attributes = append(attributes, Attribute{
-					TraitType: args[i],
-					Value:     args[i+1],
+					TraitType: attributesSlice[i],
+					Value:     attributesSlice[i+1],
 				})
 			}
 
@@ -468,7 +475,7 @@ func main() {
 	uriCmd.Flags().StringVarP(&date, "date", "D", "", "Date of the stay (optional)")
 	uriCmd.Flags().StringVarP(&externalURL, "external_url", "e", "", "External URL (optional)")
 	uriCmd.Flags().StringVarP(&image, "image", "i", "", "Image URL (optional)")
-	uriCmd.Flags().StringArrayVarP(&attributes, "attribute", "a", []string{}, "Attributes in pairs of trait_type and value (optional)")
+	uriCmd.Flags().StringSliceVarP(&attributesSlice, "attributes", "a", []string{}, "Attributes in format 'trait_type,value' (optional)")
 
 	uriCmd.MarkFlagRequired("name")
 
