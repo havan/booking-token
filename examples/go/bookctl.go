@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
@@ -19,6 +21,39 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+type Attribute struct {
+	TraitType string `json:"trait_type"`
+	Value     string `json:"value"`
+}
+
+type HotelJSON struct {
+	Name        string      `json:"name"`
+	Description string      `json:"description,omitempty"`
+	Date        string      `json:"date,omitempty"`
+	ExternalURL string      `json:"external_url,omitempty"`
+	Image       string      `json:"image,omitempty"`
+	Attributes  []Attribute `json:"attributes,omitempty"`
+}
+
+func generateAndEncodeJSON(name, description, date, externalURL, image string, attributes []Attribute) (string, string, error) {
+	hotel := HotelJSON{
+		Name:        name,
+		Description: description,
+		Date:        date,
+		ExternalURL: externalURL,
+		Image:       image,
+		Attributes:  attributes,
+	}
+
+	jsonData, err := json.Marshal(hotel)
+	if err != nil {
+		return "", "", err
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(jsonData)
+	return string(jsonData), encoded, nil
+}
 
 // Loads an ABI file
 func loadABI(filePath string) (abi.ABI, error) {
@@ -383,8 +418,63 @@ func main() {
 		},
 	}
 
+	// URI vars
+	var name, description, date, externalURL, image string
+	var attributes []string
+
+	// Generate URI command
+	// Example:
+	// bookctl uri "Example Hotel" "A nice hotel stay." "2024-06-01 to 2024-06-07" "https://example.com/hotel" "https://example.com/image.jpg"
+	// bookctl uri "Example Hotel" "A nice hotel stay." "2024-06-24" "https://camino.network" "https://camino.network/static/images/N9IkxmG-Sg-1800.webp" "Mint ID" `uuidgen -r` "Booking Reference" "RH3TG6223"
+	// bookctl uri "Pegasus PC 1091" "Flight from Sabiha Gökçene (SAW) to Barcelona (BCN)" "2024-06-24 10:55" "https://camino.network" "https://camino.network/static/images/N9IkxmG-Sg-1800.webp" "Mint ID" `uuidgen -r` "Seat" "2F"
+	var uriCmd = &cobra.Command{
+		Use:   "uri [token-name]",
+		Short: "Generate base64 encoded tokenURI for a token with the provided information.",
+		Run: func(cmd *cobra.Command, args []string) {
+
+			// if (len(args)-5)%2 != 0 {
+			// 	log.Fatal("Invalid number of arguments. Traits should be in _pairs_ of trait_type and value.")
+			// }
+
+			if len(attributes)%2 != 0 {
+				log.Fatal("Invalid number of arguments. Traits should be in pairs of trait_type and value.")
+			}
+
+			// Loop over remaining arguments and add to attributes array
+			attributes := []Attribute{}
+			for i := 5; i < len(args); i += 2 {
+				attributes = append(attributes, Attribute{
+					TraitType: args[i],
+					Value:     args[i+1],
+				})
+			}
+
+			jsonData, encodedJson, err := generateAndEncodeJSON(name, description, date, externalURL, image, attributes)
+			if err != nil {
+				log.Fatalf("Failed to generate tokenURI: %v", err)
+			}
+
+			// Append mime type to encoded json
+			tokenUri := "data:application/json;base64," + encodedJson
+
+			fmt.Println("\nRaw JSON:\n", jsonData)
+			fmt.Println("\nEncoded JSON:\n", encodedJson)
+			fmt.Println("\nToken URI:\n", tokenUri)
+		},
+	}
+
+	uriCmd.Flags().StringVarP(&name, "name", "n", "", "Name of the token (required)")
+	uriCmd.Flags().StringVarP(&description, "description", "d", "", "Description of the token (optional)")
+	uriCmd.Flags().StringVarP(&date, "date", "D", "", "Date of the stay (optional)")
+	uriCmd.Flags().StringVarP(&externalURL, "external_url", "e", "", "External URL (optional)")
+	uriCmd.Flags().StringVarP(&image, "image", "i", "", "Image URL (optional)")
+	uriCmd.Flags().StringArrayVarP(&attributes, "attribute", "a", []string{}, "Attributes in pairs of trait_type and value (optional)")
+
+	uriCmd.MarkFlagRequired("name")
+
 	rootCmd.AddCommand(registerCmd)
 	rootCmd.AddCommand(mintCmd)
 	rootCmd.AddCommand(buyCmd)
+	rootCmd.AddCommand(uriCmd)
 	rootCmd.Execute()
 }
